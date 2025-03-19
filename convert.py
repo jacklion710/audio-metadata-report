@@ -22,8 +22,7 @@ def check_ffmpeg():
         return False
 
 # Default directory path for audio files
-# AUDIO_DIR = 'path/to/your/audio/directory'  # Change this line to your specific path
-AUDIO_DIR = '/Users/jacobleone/Documents/Music/Block Party'  # Change this line to your specific path
+AUDIO_DIR = 'path/to/your/audio/directory'  # Change this line to your specific path
 
 # CDJ Compatibility Requirements
 CDJ_REQUIREMENTS = {
