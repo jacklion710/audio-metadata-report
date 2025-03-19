@@ -29,10 +29,15 @@ git clone https://github.com/jacklion710/audio-metadata-report
 cd audio-metadata-report
 ```
 
-2. Install the required dependency:
+2. Install the required dependencies:
 ```bash
 pip install mutagen
 ```
+
+3. Install ffmpeg (required for audio conversion):
+- macOS: `brew install ffmpeg`
+- Ubuntu/Debian: `sudo apt-get install ffmpeg`
+- Windows: Download from https://ffmpeg.org/download.html
 
 ## Usage
 
@@ -60,6 +65,17 @@ The conversion script will:
 - Convert incompatible files to CDJ-compatible formats in a `converted` directory
 - Maintain the original format when possible while adjusting technical specifications
 - Log all conversion operations and any errors
+
+## Directory Structure
+
+```
+audio-metadata-report/
+├── scan.py                 # Script to scan audio files and generate report
+├── convert.py             # Script to convert incompatible files
+├── audio_metadata_report.txt  # Generated report file
+├── converted/             # Directory containing converted files
+└── README.md             # This file
+```
 
 ## Report Contents
 
@@ -97,6 +113,7 @@ For each audio file:
 
 - Python 3.x
 - mutagen library
+- ffmpeg (for audio conversion)
 
 ## Supported CDJ Models
 
@@ -113,4 +130,5 @@ The compatibility requirements are based on the following CDJ models:
 - For best results, use WAV or AIFF formats at 44.1kHz/16-bit
 - Converted files are placed in a separate `converted` directory
 - The conversion process maintains the highest possible quality while ensuring compatibility
+- Original files remain unchanged in their source directory
 
