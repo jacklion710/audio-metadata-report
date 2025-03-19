@@ -17,6 +17,9 @@ Scans a directory of audio files and generates a technical report focusing on DJ
 - Generates overall compatibility statistics
 - Handles various audio formats and metadata structures
 - Robust error handling and reporting
+- Automatic conversion of incompatible files to CDJ-compatible formats
+- Stores converted files in a separate directory
+- Maintains original format when possible while adjusting technical specifications
 
 ## Installation
 
@@ -38,7 +41,7 @@ pip install mutagen
 AUDIO_DIR = 'path/to/your/audio/directory'  # Change this line to your specific path
 ```
 
-2. Run the script:
+2. Run the scan script to generate a report:
 ```bash
 python scan.py
 ```
@@ -47,6 +50,16 @@ python scan.py
 ```bash
 cat audio_metadata_report.txt
 ```
+
+4. Run the conversion script to convert incompatible files:
+```bash
+python convert.py
+```
+
+The conversion script will:
+- Convert incompatible files to CDJ-compatible formats in a `converted` directory
+- Maintain the original format when possible while adjusting technical specifications
+- Log all conversion operations and any errors
 
 ## Report Contents
 
@@ -98,4 +111,6 @@ The compatibility requirements are based on the following CDJ models:
 - Some older CDJ models may have different requirements
 - Always verify compatibility with your specific CDJ model
 - For best results, use WAV or AIFF formats at 44.1kHz/16-bit
+- Converted files are placed in a separate `converted` directory
+- The conversion process maintains the highest possible quality while ensuring compatibility
 
