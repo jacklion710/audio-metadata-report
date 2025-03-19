@@ -18,7 +18,7 @@ logging.basicConfig(level=logging.INFO, format='%(message)s')
 logger = logging.getLogger(__name__)
 
 # Default directory path for audio files
-AUDIO_DIR = 'path/to/your/audio/directory'  # Change this line to your specific path
+AUDIO_DIR = '/path/to/your/audio/directory'  # Change this line to your specific path
 
 # CDJ Compatibility Requirements
 CDJ_REQUIREMENTS = {

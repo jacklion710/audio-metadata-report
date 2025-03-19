@@ -22,7 +22,7 @@ def check_ffmpeg():
         return False
 
 # Default directory path for audio files
-AUDIO_DIR = 'path/to/your/audio/directory'  # Change this line to your specific path
+AUDIO_DIR = '/path/to/your/audio/directory'  # Change this line to your specific path
 
 # CDJ Compatibility Requirements
 CDJ_REQUIREMENTS = {
@@ -68,7 +68,8 @@ def get_conversion_params(metadata):
     
     # Map file types to their CDJ requirement keys
     format_map = {
-        'aif': 'aiff',  # Map 'aif' to 'aiff' for CDJ requirements
+        'aif': 'wav',  # Convert .aif to WAV for CDJ compatibility
+        'aiff': 'aiff',
         'wav': 'wav',
         'mp3': 'mp3',
         'flac': 'flac',
@@ -79,11 +80,15 @@ def get_conversion_params(metadata):
     cdj_key = format_map.get(file_type, 'wav')  # Default to 'wav' for unsupported formats
     
     # Determine target format based on current format
-    if file_type in ['wav', 'aif', 'aiff']:
+    if file_type in ['wav', 'aiff']:
         # For WAV/AIFF, keep the same format but adjust bit depth
-        target_format = 'wav' if file_type == 'wav' else 'aiff'  # Convert 'aif' to 'aiff'
+        target_format = 'wav' if file_type == 'wav' else 'aiff'
         if metadata['bit_depth'] not in CDJ_REQUIREMENTS[cdj_key]['bit_depths']:
             params.extend(['-acodec', 'pcm_s24le'])  # Convert to 24-bit
+    elif file_type == 'aif':
+        # Convert .aif to WAV format
+        target_format = 'wav'
+        params.extend(['-acodec', 'pcm_s24le'])  # Convert to 24-bit
     elif file_type == 'flac':
         # For FLAC, keep FLAC but adjust bit depth
         target_format = 'flac'
