@@ -21,6 +21,76 @@ logger = logging.getLogger(__name__)
 # AUDIO_DIR = 'path/to/your/audio/directory'  # Change this line to your specific path
 AUDIO_DIR = '/Users/jacobleone/Documents/Music/Block Party'  # Change this line to your specific path
 
+# CDJ Compatibility Requirements
+CDJ_REQUIREMENTS = {
+    'wav': {
+        'sample_rates': [44100, 48000],
+        'bit_depths': [16, 24],
+        'channels': [2],  # Stereo
+        'bitrate': None  # Not applicable for WAV
+    },
+    'mp3': {
+        'sample_rates': [44100],
+        'bit_depths': None,  # Not applicable for MP3
+        'channels': [2],  # Stereo
+        'bitrate': (32, 320)  # Min and max kbps
+    },
+    'aiff': {
+        'sample_rates': [44100, 48000],
+        'bit_depths': [16, 24],
+        'channels': [2],  # Stereo
+        'bitrate': None  # Not applicable for AIFF
+    },
+    'flac': {
+        'sample_rates': [44100, 48000],
+        'bit_depths': [16, 24],
+        'channels': [2],  # Stereo
+        'bitrate': None  # Not applicable for FLAC
+    },
+    'm4a': {
+        'sample_rates': [44100, 48000],
+        'bit_depths': None,  # Not applicable for M4A
+        'channels': [2],  # Stereo
+        'bitrate': (256, None)  # Min kbps, no max
+    }
+}
+
+def check_compatibility(metadata):
+    """
+    Check if a file meets CDJ compatibility requirements
+    Returns a tuple of (is_compatible, issues)
+    """
+    issues = []
+    file_type = metadata['file_type'].lstrip('.')
+    
+    if file_type not in CDJ_REQUIREMENTS:
+        return False, ["Format not supported by CDJs"]
+    
+    reqs = CDJ_REQUIREMENTS[file_type]
+    
+    # Check sample rate
+    if reqs['sample_rates'] and metadata['sample_rate'] not in reqs['sample_rates']:
+        issues.append(f"Sample rate {metadata['sample_rate']} Hz not supported. Required: {reqs['sample_rates']} Hz")
+    
+    # Check bit depth
+    if reqs['bit_depths'] and metadata['bit_depth'] not in reqs['bit_depths']:
+        issues.append(f"Bit depth {metadata['bit_depth']} bits not supported. Required: {reqs['bit_depths']} bits")
+    
+    # Check channels
+    if reqs['channels'] and metadata['channels'] not in reqs['channels']:
+        issues.append(f"Channel configuration not supported. Required: {reqs['channels']} channels")
+    
+    # Check bitrate for lossy formats
+    if reqs['bitrate']:
+        min_bitrate, max_bitrate = reqs['bitrate']
+        if metadata['bitrate']:
+            if min_bitrate and metadata['bitrate'] < min_bitrate:
+                issues.append(f"Bitrate {metadata['bitrate']} kbps too low. Minimum required: {min_bitrate} kbps")
+            if max_bitrate and metadata['bitrate'] > max_bitrate:
+                issues.append(f"Bitrate {metadata['bitrate']} kbps too high. Maximum allowed: {max_bitrate} kbps")
+    
+    return len(issues) == 0, issues
+
 def get_format_specific_info(audio, file_type):
     """
     Extract format-specific metadata from audio file
@@ -120,6 +190,7 @@ def generate_report(directory_path):
     bit_depth_stats = defaultdict(int)
     channel_stats = defaultdict(int)
     error_files = []
+    compatibility_stats = {'compatible': 0, 'incompatible': 0}
     
     # Scan directory for audio files
     audio_extensions = {'.mp3', '.wav', '.wave', '.flac', '.aif', '.aiff', '.m4a', '.ogg'}
@@ -128,6 +199,9 @@ def generate_report(directory_path):
             try:
                 metadata = get_audio_metadata(file_path)
                 if metadata:
+                    is_compatible, issues = check_compatibility(metadata)
+                    metadata['is_compatible'] = is_compatible
+                    metadata['compatibility_issues'] = issues
                     audio_files.append(metadata)
                     format_stats[metadata['file_type']] += 1
                     if metadata['sample_rate']:
@@ -136,6 +210,7 @@ def generate_report(directory_path):
                         bit_depth_stats[str(metadata['bit_depth'])] += 1
                     if metadata['channels']:
                         channel_stats[str(metadata['channels'])] += 1
+                    compatibility_stats['compatible' if is_compatible else 'incompatible'] += 1
                 else:
                     error_files.append(str(file_path))
             except Exception as e:
@@ -151,6 +226,12 @@ def generate_report(directory_path):
         report.append(f"Files with errors: {len(error_files)}\n")
     else:
         report.append("All files processed successfully.\n")
+
+    # CDJ Compatibility Summary
+    report.append("=== CDJ Compatibility Summary ===\n")
+    report.append(f"Compatible files: {compatibility_stats['compatible']}")
+    report.append(f"Incompatible files: {compatibility_stats['incompatible']}")
+    report.append(f"Compatibility rate: {(compatibility_stats['compatible'] / len(audio_files) * 100):.1f}%\n")
 
     # Summary Statistics
     report.append("=== Summary Statistics ===\n")
@@ -182,6 +263,11 @@ def generate_report(directory_path):
         report.append(f"  Channels: {metadata['channels']}")
         if metadata['bitrate']:
             report.append(f"  Bitrate: {metadata['bitrate']} kbps")
+        report.append(f"  CDJ Compatible: {'Yes' if metadata['is_compatible'] else 'No'}")
+        if metadata['compatibility_issues']:
+            report.append("  Compatibility Issues:")
+            for issue in metadata['compatibility_issues']:
+                report.append(f"    - {issue}")
         report.append("")
 
     # Error Report
